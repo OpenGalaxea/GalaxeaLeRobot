@@ -15,6 +15,7 @@
 # limitations under the License.
 import contextlib
 import importlib.resources
+import io
 import json
 import logging
 from collections.abc import Iterator
@@ -263,6 +264,10 @@ def hf_transform_to_torch(items_dict: dict[torch.Tensor | None]):
     """
     for key in items_dict:
         first_item = items_dict[key][0]
+        if type(first_item) == dict and 'bytes' in first_item and first_item['bytes'] is not None:
+            to_pil = lambda img: PILImage.open(io.BytesIO(img['bytes']))
+            items_dict[key] = [to_pil(img) for img in items_dict[key]]
+            first_item = items_dict[key][0]
         if isinstance(first_item, PILImage.Image):
             to_tensor = transforms.ToTensor()
             items_dict[key] = [to_tensor(img) for img in items_dict[key]]
