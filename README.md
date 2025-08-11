@@ -1,3 +1,17 @@
+# LeRobot (Fork, with minor fixes)
+
+> This repository is a fork of [LeRobot](https://github.com/huggingface/lerobot) at commit [a5e0aae](https://github.com/huggingface/lerobot/tree/a5e0aae13a3efd0080ac7ab6b461980d644014ab)
+> originally developed by Hugging Face and licensed under the Apache License 2.0.
+> For the original project, please visit: [https://github.com/huggingface/lerobot](https://github.com/huggingface/lerobot).
+
+### 📌 Changes in This Fork
+- Fixed episode subseting bug when indexing using delta timestamps in `src/lerobot/datasets/lerobot_dataset.py`.
+- Fix supporting of loading image from parquet in `src/lerobot/datasets/utils.py`.
+- No other modifications have been made.  
+- All other code, documentation, and assets are identical to the original repository.
+
+---
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="media/lerobot-logo-thumbnail.png">
