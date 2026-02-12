@@ -17,7 +17,7 @@ import contextlib
 import logging
 import shutil
 from pathlib import Path
-from typing import Callable
+from typing import Callable, List
 
 import datasets
 import numpy as np
@@ -764,7 +764,7 @@ class LeRobotDataset(torch.utils.data.Dataset):
         else:
             self.image_writer.save_image(image=image, fpath=fpath)
 
-    def add_frame(self, frame: dict, task: str, timestamp: float | None = None) -> None:
+    def add_frame(self, frame: dict, task: List[str], timestamp: float | None = None) -> None:
         """
         This function only adds the frame to the episode_buffer. Apart from images — which are written in a
         temporary directory — nothing is written to disk. To save those frames, the 'save_episode()' method
@@ -825,7 +825,7 @@ class LeRobotDataset(torch.utils.data.Dataset):
         # size and task are special cases that won't be added to hf_dataset
         episode_length = episode_buffer.pop("size")
         tasks = episode_buffer.pop("task")
-        episode_tasks = list(set(tasks))
+        episode_tasks = list(set([item for sublist in tasks for item in sublist]))
         episode_index = episode_buffer["episode_index"]
 
         episode_buffer["index"] = np.arange(self.meta.total_frames, self.meta.total_frames + episode_length)
@@ -836,14 +836,15 @@ class LeRobotDataset(torch.utils.data.Dataset):
             task_index = self.meta.get_task_index(task)
             if task_index is None:
                 self.meta.add_task(task)
-
         # Given tasks in natural language, find their corresponding task indices
-        episode_buffer["task_index"] = np.array([self.meta.get_task_index(task) for task in tasks])
+        episode_buffer["coarse_task_index"] = np.array([self.meta.get_task_index(task[0]) for task in tasks])
+        episode_buffer["task_index"] = np.array([self.meta.get_task_index(task[1]) for task in tasks])
+        episode_buffer["quality_index"] = np.array([self.meta.get_task_index(task[2]) for task in tasks])
 
         for key, ft in self.features.items():
             # index, episode_index, task_index are already processed above, and image and video
             # are processed separately by storing image path and frame info as meta data
-            if key in ["index", "episode_index", "task_index"] or ft["dtype"] in ["image", "video"]:
+            if key in ["index", "episode_index", "task_index", "coarse_task_index", "quality_index"] or ft["dtype"] in ["image", "video"]:
                 continue
             episode_buffer[key] = np.stack(episode_buffer[key])
 
